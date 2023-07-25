@@ -8,10 +8,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/modfin/henry/slicez"
+	"github.com/modfin/idly"
+	"github.com/modfin/idly/internal/config"
+	"github.com/modfin/idly/internal/dao"
 	"github.com/prometheus/client_golang/prometheus"
-	"idly"
-	"idly/internal/config"
-	"idly/internal/dao"
 	"time"
 )
 

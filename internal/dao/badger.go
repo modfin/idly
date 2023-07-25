@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/dgraph-io/badger/v3"
 	"github.com/modfin/henry/slicez"
-	"idly"
+	"github.com/modfin/idly"
 	"time"
 )
 

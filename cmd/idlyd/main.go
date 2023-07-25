@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"idly/internal/api"
-	"idly/internal/config"
-	"idly/internal/dao"
+	"github.com/modfin/idly/internal/api"
+	"github.com/modfin/idly/internal/config"
+	"github.com/modfin/idly/internal/dao"
 	"os"
 	"os/signal"
 	"syscall"

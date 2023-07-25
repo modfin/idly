@@ -8,11 +8,11 @@ import (
 	"github.com/google/uuid"
 	goip "github.com/jpiontek/go-ip-api"
 	"github.com/mileusna/useragent"
+	"github.com/modfin/idly"
+	"github.com/modfin/idly/internal/config"
 	"github.com/modfin/mmailer"
 	gomail "gopkg.in/mail.v2"
 	"html/template"
-	"idly"
-	"idly/internal/config"
 	"time"
 )
 

@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"idly"
+	"github.com/modfin/idly"
 	"time"
 )
 

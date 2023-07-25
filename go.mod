@@ -1,4 +1,4 @@
-module idly
+module github.com/modfin/idly
 
 go 1.20
 

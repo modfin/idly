@@ -28,7 +28,7 @@ type Request struct {
 
 // List successful logins of a user of a service, records
 func (c *Client) List(uid string) ([]Login, error) {
-	res, err := http.Get(fmt.Sprintf("%s/login/%s/%s/", c.uri, url.PathEscape(c.service), url.PathEscape(uid)))
+	res, err := http.Get(fmt.Sprintf("%s/login/%s/%s", c.uri, url.PathEscape(c.service), url.PathEscape(uid)))
 	if err != nil {
 		return nil, err
 	}
