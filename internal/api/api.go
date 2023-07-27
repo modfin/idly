@@ -12,11 +12,16 @@ import (
 	"github.com/modfin/idly/internal/config"
 	"github.com/modfin/idly/internal/dao"
 	"github.com/prometheus/client_golang/prometheus"
+	"log"
 	"time"
 )
 
 func Start(c context.Context, db dao.DAO) {
 	e := echo.New()
+
+	e.GET("/ping", func(c echo.Context) error {
+		return c.String(200, "hello from idly")
+	})
 
 	e.Use(middleware.Recover(), middleware.Logger())
 	e.Use(echoprometheus.NewMiddleware("idly"))    // adds middleware to gather metrics
@@ -111,6 +116,9 @@ func Start(c context.Context, db dao.DAO) {
 		if err != nil {
 			return err
 		}
+
+		log.Println(fmt.Sprintf("Current login: %v", login))
+		log.Println(fmt.Sprintf("Previous logins: %v", logins))
 
 		err = db.StoreLogin(login, config.Get().LoginTTL)
 		if err != nil {
