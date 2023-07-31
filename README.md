@@ -32,7 +32,7 @@ default 720h (30 days)
 
 
 ## Usage
-When a login attempt fail or succeeds in you application/service, use to provided client or make a http request to idly
+When a login attempt fail or succeeds in you application/service, use the provided client or make a http request to idly
 
 ```go 
 
@@ -48,7 +48,7 @@ func login(email, password string, r http.Request) bool{
     }
 	
     ids.Success()
-	return true
+    return true
 }
 
 
