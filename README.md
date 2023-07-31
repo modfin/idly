@@ -38,9 +38,9 @@ When a login attempt fail or succeeds in you application/service, use the provid
 
 func login(email, password string, r http.Request) bool{
 	
-	ids := idly.NewClient("ServiceName", "http://idly:8080").
-	    Request(email, r.Header.Get("X-Real-IP")).
-	    WithUserAgent(r.Header.Get("User-Agent"))
+    ids := idly.NewClient("ServiceName", "http://idly:8080").
+        Request(email, r.Header.Get("X-Real-IP")).
+        WithUserAgent(r.Header.Get("User-Agent"))
 	
     if email != "luke@example.com" || password != "skywalker"{
         ids.Fail()
