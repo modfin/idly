@@ -21,6 +21,7 @@ default 720h (30 days)
 * `ALERT_EMAIL_FROM` from who will the service send the email, 
 * `ALERT_EMAIL_TITLE` The title of the email as a go template. default `[{{.Service}}]: Your {{.Service}} account has been accessed from a new IP Address`
 * `ALERT_EMAIL_TEMPLATE` The path to a file containing a template for the email.
+* `ALERT_EMAIL_POSTHOOK` HTTP endpoint to be called when alerting instead of sending an email.
 
 * `MMAILER_URL` MMailer API base URL (https://github.com/modfin/mmailer)
 * `MMAILER_KEY` MMailer API key 
