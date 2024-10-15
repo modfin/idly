@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	goip "github.com/jpiontek/go-ip-api"
@@ -13,30 +14,21 @@ import (
 	"github.com/modfin/mmailer"
 	gomail "gopkg.in/mail.v2"
 	"html/template"
-	"time"
+	"net/http"
+	"strings"
 )
-
-type email struct {
-	Service   string
-	UID       string
-	Location  *goip.Location
-	At        time.Time
-	Device    string
-	IPAddress string
-	UserAgent string
-}
 
 func Alert(login idly.Login) error {
 
 	fmt.Println("Creating alert for", login.Key())
 
-	tmpltext := config.Get().AlertEmailTemplate
-
-	e := email{
+	ai := idly.AlertInfo{
 		Service:   login.Service,
+		Email:     login.Email,
 		UID:       login.UID,
 		At:        login.At,
 		IPAddress: login.IPAddress,
+		Location:  "Unknown",
 	}
 
 	if config.Get().IpApiEnable {
@@ -44,12 +36,18 @@ func Alert(login idly.Login) error {
 		if len(config.Get().IpApiKey) > 0 {
 			ipcli = goip.NewClientWithApiKey(config.Get().IpApiKey)
 		}
-		e.Location, _ = ipcli.GetLocationForIp(login.IPAddress)
+		loc, err := ipcli.GetLocationForIp(login.IPAddress)
+		if loc != nil {
+			ai.Location = loc.Country
+		}
+		if err != nil {
+			fmt.Println("[ERR] could not get location for ip", err)
+		}
 	}
 
 	if len(login.HttpHeaders) > 0 && len(login.HttpHeaders.Get("User-Agent")) > 0 {
-		e.UserAgent = login.HttpHeaders.Get("User-Agent")
-		ua := useragent.Parse(e.UserAgent)
+		ai.UserAgent = login.HttpHeaders.Get("User-Agent")
+		ua := useragent.Parse(ai.UserAgent)
 
 		device := "Unknown"
 		if ua.Mobile {
@@ -61,7 +59,7 @@ func Alert(login idly.Login) error {
 		if ua.Desktop {
 			device = "Desktop"
 		}
-		e.Device = fmt.Sprintf("%s, %s, %s", device, ua.OS, ua.Name)
+		ai.Device = fmt.Sprintf("%s, %s, %s", device, ua.OS, ua.Name)
 	}
 
 	titltmpl, err := template.New("emailTitle").Parse(config.Get().AlertEmailTitle)
@@ -69,7 +67,7 @@ func Alert(login idly.Login) error {
 		return fmt.Errorf("could not parse email template, %w", err)
 	}
 	buf := bytes.NewBuffer(nil)
-	err = titltmpl.Execute(buf, e)
+	err = titltmpl.Execute(buf, ai)
 	if err != nil {
 		return err
 	}
@@ -78,25 +76,83 @@ func Alert(login idly.Login) error {
 	}
 	titleContent := buf.String()
 
+	ai.Subject = titleContent
+
+	if config.Get().AlertEmailPosthook != "" {
+		// posthook overrides email if it is defined
+		return AlertPosthook(config.Get().AlertEmailPosthook, ai)
+	}
+
+	return AlertEmail(config.Get().AlertFromEmail, ai)
+}
+
+func AlertPosthook(posthook string, ai idly.AlertInfo) error {
+	fmt.Println("[Alerting posthook]", ai.Subject, "[To]", posthook)
+
+	if !strings.HasPrefix(posthook, "http") {
+		fmt.Println("[ERR] unsupported posthook scheme, only http/https allowed")
+		return fmt.Errorf("unsupported posthook (%s) scheme, only http/https allowed", posthook)
+	}
+
+	payload, err := json.Marshal(ai)
+	if err != nil {
+		fmt.Println("[ERR] could not marshal alert info", err)
+		return err
+	}
+
+	if !config.Get().Production {
+		fmt.Println("[POSTHOOK] Sending", string(payload))
+	}
+
+	go SendPosthook(posthook, payload)
+
+	return nil
+}
+
+func SendPosthook(posthook string, payload []byte) {
+	request, err := http.NewRequest(http.MethodPost, posthook, bytes.NewReader(payload))
+	if err != nil {
+		fmt.Println("[ERR] could not create posthook request", err)
+		return
+	}
+	request.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		fmt.Println("[ERR] could not send posthook request", err)
+		return
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		fmt.Println("[ERR] non 200 statuscode response from posthook request")
+		return
+	}
+
+	fmt.Println("[POSTHOOK] Alert succesfully sent and receieved to posthook", posthook)
+}
+
+func AlertEmail(from string, ai idly.AlertInfo) error {
+	tmpltext := config.Get().AlertEmailTemplate
+
 	emltmpl, err := template.New("email").Parse(tmpltext)
 	if err != nil {
 		return fmt.Errorf("could not parse email template, %w", err)
 	}
-	buf = bytes.NewBuffer(nil)
-	err = emltmpl.Execute(buf, e)
+	buf := bytes.NewBuffer(nil)
+	err = emltmpl.Execute(buf, ai)
 	if err != nil {
 		return err
 	}
 
 	emailContent := buf.String()
 
-	go Send(login.Service, config.Get().AlertFromEmail, login.Email, titleContent, emailContent)
+	go SendEmail(ai.Service, from, ai.Email, ai.Subject, emailContent)
 
 	return nil
 }
 
-func Send(service, from, to, subject, content string) {
-	fmt.Println("[Sending]", subject, "[To]", to)
+func SendEmail(service, from, to, subject, content string) {
+	fmt.Println("[Sending email]", subject, "[To]", to)
 
 	if !config.Get().Production {
 		fmt.Println()

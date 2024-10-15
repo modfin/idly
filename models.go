@@ -41,3 +41,15 @@ func (l Login) Value() (string, error) {
 	b, err := json.Marshal(l)
 	return string(b), err
 }
+
+type AlertInfo struct {
+	Service   string    `json:"service,omitempty"`
+	UID       string    `json:"uid,omitempty"`
+	Location  string    `json:"location,omitempty"`
+	At        time.Time `json:"at"`
+	Device    string    `json:"device"`
+	IPAddress string    `json:"ip_address"`
+	UserAgent string    `json:"user_agent"`
+	Email     string    `json:"email"`
+	Subject   string    `json:"subject"`
+}

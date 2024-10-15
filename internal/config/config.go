@@ -22,6 +22,7 @@ type Config struct {
 	AlertFromEmail     string `env:"ALERT_EMAIL_FROM"`
 	AlertEmailTitle    string `env:"ALERT_EMAIL_TITLE" envDefault:"[{{.Service}}]: Your {{.Service}} account has been accessed from a new IP Address"`
 	AlertEmailTemplate string `env:"ALERT_EMAIL_TEMPLATE,file"`
+	AlertEmailPosthook string `env:"ALERT_EMAIL_POSTHOOK"`
 
 	MMailerURL string `env:"MMAILER_URL"`
 	MMailerKey string `env:"MMAILER_KEY"`
