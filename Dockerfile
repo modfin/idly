@@ -1,4 +1,4 @@
-FROM golang:1.20.4-alpine3.18 AS builder
+FROM golang:1.23-alpine3.20 AS builder
 
 WORKDIR /src
 
@@ -8,7 +8,7 @@ RUN GOOS=linux GOARCH=amd64 go build -o /idly /src/cmd/idlyd/main.go
 
 # -----
 
-FROM alpine:3.18
+FROM alpine:3.20
 
 EXPOSE 8080
 
