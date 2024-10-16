@@ -118,7 +118,7 @@ func Start(c context.Context, db dao.DAO) {
 		}
 
 		log.Println(fmt.Sprintf("Current login: %v", login))
-		log.Println(fmt.Sprintf("Previous logins: %v", logins))
+		log.Println(fmt.Sprintf("Previous logins: %d", len(logins)))
 
 		err = db.StoreLogin(login, config.Get().LoginTTL)
 		if err != nil {
